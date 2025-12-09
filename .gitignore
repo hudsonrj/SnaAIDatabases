@@ -1,0 +1,46 @@
+# Binários
+snip
+snip.exe
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Diretórios de build
+dist/
+build/
+bin/
+
+# Go
+*.test
+*.out
+go.work
+go.work.sum
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Configurações locais
+.env
+.env.local
+*.local
+
+# Banco de dados local
+~/.snip/
+.snip/
+
+# Logs
+*.log
+
+# Temporários
+tmp/
+temp/
+*.tmp

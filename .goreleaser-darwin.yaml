@@ -1,0 +1,67 @@
+version: 2
+
+project_name: snip
+
+before:
+  hooks:  
+    - go mod tidy
+
+builds:
+  - id: snip-darwin
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+
+archives:
+  - formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+
+checksum:
+  name_template: 'snip_{{ .Version }}_checksums_darwin.txt'
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
+homebrew_casks:
+  - name: snip-notes
+    binary: snip
+    url:
+      template: "https://github.com/matheuzgomes/Snip/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    homepage: "https://github.com/matheuzgomes/Snip"
+    description: "A fast and lightweight note-taking CLI application"
+    repository:
+      owner: matheuzgomes
+      name: homebrew-Snip
+      branch: main
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/snip"]
+          end
+    caveats: |
+      Data files are stored in ~/.snip/
+      To completely remove all data, run: rm -rf ~/.snip/
+
+release:
+  footer: >-
+
+    ---
+
+    Released by [GoReleaser](https://github.com/goreleaser/goreleaser).
