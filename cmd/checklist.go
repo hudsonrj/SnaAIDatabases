@@ -195,5 +195,6 @@ func init() {
 	checklistCmd.AddCommand(checklistItemAddCmd)
 	checklistCmd.AddCommand(checklistItemToggleCmd)
 	checklistCmd.AddCommand(checklistItemDeleteCmd)
+	// bulkChecklistCmd é adicionado em checklist_bulk.go
 }
 

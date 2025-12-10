@@ -8,6 +8,7 @@ import (
 
 	"github.com/snip/internal/dbanalysis"
 	"github.com/snip/internal/exporter"
+	"github.com/snip/internal/integration"
 	"github.com/snip/internal/repository"
 )
 
@@ -18,7 +19,7 @@ type DBAnalysisHandler interface {
 	GetAnalysis(idStr string, verbose bool) error
 	GetAnalysisByID(id int) (*dbanalysis.DBAnalysis, error)
 	DeleteAnalysis(idStr string) error
-	RunAnalysis(idStr string, exportFilename string) error
+	RunAnalysis(idStr string, exportFilename string, createJiraEpic bool, createJiraIssues bool, exportToConfluence bool, confluenceTitle string, confluenceParent string) error
 	ExportAnalysisToMarkdown(idStr string, filename string) (string, error)
 }
 
@@ -199,7 +200,7 @@ func (h *dbAnalysisHandler) DeleteAnalysis(idStr string) error {
 	return nil
 }
 
-func (h *dbAnalysisHandler) RunAnalysis(idStr string, exportFilename string) error {
+func (h *dbAnalysisHandler) RunAnalysis(idStr string, exportFilename string, createJiraEpic bool, createJiraIssues bool, exportToConfluence bool, confluenceTitle string, confluenceParent string) error {
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return fmt.Errorf("ID de análise inválido: %s", idStr)
@@ -279,6 +280,48 @@ func (h *dbAnalysisHandler) RunAnalysis(idStr string, exportFilename string) err
 			fmt.Printf("⚠️  Aviso: Erro ao exportar: %v\n", err)
 		} else {
 			fmt.Printf("✅ Relatório exportado para: %s\n", filePath)
+		}
+	}
+
+	// Criar Epic no Jira se solicitado
+	if createJiraEpic {
+		fmt.Println("\n📋 Criando Epic no Jira...")
+		epic, err := integration.CreateJiraEpicFromAnalysis(analysis)
+		if err != nil {
+			fmt.Printf("⚠️  Aviso: Erro ao criar Epic: %v\n", err)
+		} else {
+			epicKey := epic.Key
+			fmt.Printf("✅ Epic criado: %s\n", epicKey)
+
+			// Criar Issues se solicitado
+			if createJiraIssues {
+				fmt.Println("\n📝 Criando Issues no Jira...")
+				issueKeys, err := integration.CreateJiraIssuesFromAnalysis(analysis, epicKey)
+				if err != nil {
+					fmt.Printf("⚠️  Aviso: Erro ao criar Issues: %v\n", err)
+				} else {
+					fmt.Printf("✅ %d Issue(s) criada(s) no Epic %s\n", len(issueKeys), epicKey)
+					for _, issueKey := range issueKeys {
+						fmt.Printf("   - %s\n", issueKey)
+					}
+				}
+			}
+		}
+	}
+
+	// Exportar para Confluence se solicitado
+	if exportToConfluence {
+		fmt.Println("\n📄 Exportando para Confluence...")
+		pageID, err := integration.ExportAnalysisToConfluence(analysis, confluenceTitle, confluenceParent)
+		if err != nil {
+			fmt.Printf("⚠️  Aviso: Erro ao exportar para Confluence: %v\n", err)
+		} else {
+			fmt.Printf("✅ Página criada no Confluence: %s\n", pageID)
+			if confluenceTitle != "" {
+				fmt.Printf("   Título: %s\n", confluenceTitle)
+			} else {
+				fmt.Printf("   Título: %s\n", analysis.Title)
+			}
 		}
 	}
 

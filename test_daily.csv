@@ -1,0 +1,5 @@
+title,description,category,priority,status,notes,check_time,result
+Verificar conexões ativas,Contar número de conexões ativas no banco,Monitoramento,high,pending,,09:00,
+Verificar espaço em disco,Verificar espaço disponível em tablespaces,Storage,high,pending,,09:00,
+Verificar logs de erro,Revisar logs de erro das últimas 24h,Logs,medium,pending,,09:00,
+Verificar backups,Confirmar execução dos backups agendados,Backup,high,pending,,10:00,

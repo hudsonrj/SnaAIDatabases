@@ -1,0 +1,5 @@
+title,description,category,priority,status,notes,severity,compliance,remediation
+Auditar usuários,Revisar usuários e remover inativos,Security,high,pending,,Alta,SOX,Remover usuários inativos
+Revisar permissões,Auditar permissões e privilégios,Security,high,pending,,Alta,PCI-DSS,Aplicar least privilege
+Verificar criptografia,Confirmar criptografia de dados sensíveis,Security,high,pending,,Alta,GDPR,Habilitar TDE
+Auditar logs de acesso,Revisar logs de acesso e autenticação,Security,medium,pending,,Média,SOX,Configurar alertas

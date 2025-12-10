@@ -469,6 +469,13 @@ O sistema de análise de bancos de dados do Snip é uma solução abrangente que
     - Interpretação inteligente de resultados
     - **Use o comando `snip db-chat` para iniciar uma sessão interativa**
 
+31. **Chat com Histórico** (`db-history chat`)
+    - **Chat interativo com o banco SQLite que armazena todas as análises**
+    - Pergunte sobre análises passadas, comparações, evolução
+    - Geração automática de queries SQL para consultar o histórico
+    - Interpretação inteligente de resultados
+    - **Use o comando `snip db-history chat` para iniciar uma sessão**
+
 #### 🤖 Integração com Inteligência Artificial
 
 A IA está integrada em múltiplos níveis do sistema de análise:
@@ -1070,6 +1077,9 @@ snip db-project --analysis-id 1 --incident "Banco de dados lento durante picos"
 # Chat interativo com banco de dados
 snip db-chat --db-type postgresql --host localhost --port 5432 --database mydb --username user --password pass
 
+# Chat interativo com histórico de análises
+snip db-history chat
+
 # Análises Oracle RAC
 snip db-analysis create --title "Saúde RAC" --db-type oracle --analysis-type rac_health ...
 snip db-analysis create --title "Erros RAC" --db-type oracle --analysis-type rac_errors ...
@@ -1079,7 +1089,11 @@ snip db-analysis create --title "Latência RAC" --db-type oracle --analysis-type
 
 #### 💬 Chat Interativo com Banco de Dados
 
-O Snip oferece um chat interativo onde você pode conversar com o banco de dados usando linguagem natural. A IA:
+O Snip oferece dois tipos de chat interativo:
+
+##### 1. Chat com Banco de Dados (`snip db-chat`)
+
+Converse diretamente com o banco de dados usando linguagem natural. A IA:
 
 - **Gera queries SQL** baseadas em suas perguntas
 - **Executa as queries** automaticamente
@@ -1104,6 +1118,37 @@ Você: qual é a tabela que mais cresceu nos últimos 30 dias?
 🤖 Assistente: [IA gera query complexa, executa e fornece análise]
 ```
 
+##### 2. Chat com Histórico de Análises (`snip db-history chat`)
+
+Converse com o banco SQLite que armazena todas as análises realizadas. A IA:
+
+- **Gera queries SQL** para consultar o histórico de análises
+- **Executa queries** automaticamente no banco SQLite interno
+- **Interpreta resultados** de forma clara e útil
+- **Compara análises** de diferentes períodos
+- **Identifica tendências** e evoluções
+- **Responde perguntas** sobre problemas, insights, gráficos, etc.
+
+**Exemplo de uso:**
+
+```bash
+# Iniciar chat com histórico
+snip db-history chat
+
+# No chat:
+Você: quantas análises foram feitas este mês?
+🤖 Assistente: Encontrei 12 análises realizadas neste mês...
+
+Você: compare as análises de diagnóstico do PostgreSQL entre janeiro e fevereiro
+🤖 Assistente: [IA compara análises e mostra evolução]
+
+Você: quais problemas foram identificados nas análises do SQL Server?
+🤖 Assistente: [IA lista problemas encontrados em todas as análises]
+
+Você: mostre a evolução das análises de tuning do MySQL
+🤖 Assistente: [IA mostra gráfico/tabela de evolução ao longo do tempo]
+```
+
 **Comandos do chat:**
 - Digite suas perguntas normalmente
 - Digite `exit`, `quit` ou `sair` para encerrar o chat
@@ -1113,9 +1158,18 @@ Você: qual é a tabela que mais cresceu nos últimos 30 dias?
 Todas as análises são armazenadas no banco de dados SQLite local (`~/.snip/notes.db`), permitindo:
 
 - **Histórico Completo**: Todas as análises ficam salvas para consulta posterior
-- **Comparação**: Compare análises de diferentes períodos
+- **Comparação**: Compare análises de diferentes períodos usando `snip db-history chat`
 - **Auditoria**: Mantenha registro de todas as análises realizadas
-- **Relatórios**: Exporte análises para outros formatos
+- **Relatórios**: Exporte análises para outros formatos (Markdown, JSON, HTML)
+- **Chat Inteligente**: Use `snip db-history chat` para fazer perguntas sobre o histórico de análises
+
+**Exemplos de perguntas no chat de histórico:**
+- "Liste todas as análises do Oracle"
+- "Quantas análises foram feitas este mês?"
+- "Compare as análises de diagnóstico do PostgreSQL entre janeiro e fevereiro"
+- "Quais problemas foram identificados nas análises do SQL Server?"
+- "Mostre a evolução das análises de tuning do MySQL"
+- "Quais insights a IA gerou sobre o MongoDB?"
 
 #### 🎯 Potencial e Benefícios
 
@@ -1254,6 +1308,18 @@ snip db-project --analysis-id 1 --incident "Banco de dados lento durante picos d
 6. Crie planos de manutenção: `snip db-maintenance --analysis-id 1`
 7. Transforme análises em projetos: `snip db-project --analysis-id 1`
 8. Integre com seus processos de DevOps
+
+## 📚 Documentação Adicional
+
+Para exemplos detalhados de uso, saídas de comandos e relatórios gerados, consulte o arquivo [EXAMPLES.md](EXAMPLES.md) que contém:
+
+- Exemplos completos de análises com saídas reais
+- Exemplos de chat interativo (banco de dados e histórico)
+- Exemplos de gráficos (ASCII e HTML)
+- Exemplos de planos de manutenção gerados por IA
+- Exemplos de exportação para Markdown
+- Exemplos de integração com Jira e Confluence
+- E muito mais!
 
 ## 🚀 Installation
 

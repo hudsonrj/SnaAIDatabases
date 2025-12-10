@@ -31,6 +31,11 @@ var (
 	dbAnalysisGeneratePlan bool
 	dbAnalysisGenerateProject bool
 	dbAnalysisExport       string
+	dbAnalysisCreateJiraEpic bool
+	dbAnalysisCreateJiraIssues bool
+	dbAnalysisExportToConfluence bool
+	dbAnalysisConfluenceTitle string
+	dbAnalysisConfluenceParent string
 )
 
 func init() {
@@ -228,7 +233,7 @@ Exemplo:
 	Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 		if err := executeWithDBAnalysisHandler(func(h handler.DBAnalysisHandler) error {
-			return h.RunAnalysis(args[0], dbAnalysisExport)
+			return h.RunAnalysis(args[0], dbAnalysisExport, dbAnalysisCreateJiraEpic, dbAnalysisCreateJiraIssues, dbAnalysisExportToConfluence, dbAnalysisConfluenceTitle, dbAnalysisConfluenceParent)
 		}); err != nil {
 			fmt.Printf("Erro: %v\n", err)
 		}
