@@ -30,12 +30,12 @@ type ProjectTask struct {
 
 // ProjectGenerator transforma análises em projetos
 type ProjectGenerator struct {
-	aiClient *ai.GroqClient
+	aiClient ai.AIClient
 }
 
 // NewProjectGenerator cria um novo gerador de projetos
 func NewProjectGenerator() (*ProjectGenerator, error) {
-	aiClient, err := ai.NewGroqClient()
+	aiClient, err := ai.NewAIClient()
 	if err != nil {
 		return nil, fmt.Errorf("erro ao criar cliente IA: %w", err)
 	}

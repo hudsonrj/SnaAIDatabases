@@ -21,15 +21,15 @@ type ProjectHandler interface {
 type projectHandler struct {
 	projectRepo repository.ProjectRepository
 	taskRepo    repository.TaskRepository
-	groqClient  *ai.GroqClient
+	aiClient  ai.AIClient
 }
 
 func NewProjectHandler(projectRepo repository.ProjectRepository, taskRepo repository.TaskRepository) ProjectHandler {
-	groqClient, _ := ai.NewGroqClient()
+	aiClient, _ := ai.NewAIClient()
 	return &projectHandler{
 		projectRepo: projectRepo,
 		taskRepo:    taskRepo,
-		groqClient:  groqClient,
+		aiClient:    aiClient,
 	}
 }
 
@@ -119,12 +119,12 @@ func (h *projectHandler) DeleteProject(id int) error {
 }
 
 func (h *projectHandler) CreateProjectWithAI(name, description string) error {
-	if h.groqClient == nil {
+	if h.aiClient == nil {
 		return fmt.Errorf("AI client not available")
 	}
 
 	fmt.Println("Gerando plano de projeto com IA...")
-	plan, err := h.groqClient.GenerateProjectPlan(name, description)
+	plan, err := h.aiClient.GenerateProjectPlan(name, description)
 	if err != nil {
 		return fmt.Errorf("failed to generate project plan: %w", err)
 	}

@@ -23,14 +23,16 @@ import (
 
 // Analyzer realiza análises de banco de dados
 type Analyzer struct {
-	aiClient *ai.GroqClient
+	aiClient ai.AIClient
 }
 
 // NewAnalyzer cria um novo analisador
 func NewAnalyzer() (*Analyzer, error) {
-	aiClient, err := ai.NewGroqClient()
+	// Tentar criar cliente IA, mas não falhar se não estiver configurado
+	aiClient, err := ai.NewAIClient()
 	if err != nil {
-		return nil, fmt.Errorf("erro ao criar cliente IA: %w", err)
+		// IA é opcional - continuar sem ela
+		aiClient = nil
 	}
 	return &Analyzer{aiClient: aiClient}, nil
 }
@@ -144,16 +146,21 @@ func (a *Analyzer) PerformAnalysis(analysis *DBAnalysis, config *ConnectionConfi
 
 	analysis.Result = result.String()
 
-	// Gerar insights com IA
-	insights, err := a.generateAIInsights(analysis)
-	if err == nil {
-		analysis.AIInsights = insights
-	}
+	// Gerar insights com IA (se disponível)
+	if a.aiClient != nil {
+		insights, err := a.generateAIInsights(analysis)
+		if err == nil {
+			analysis.AIInsights = insights
+		}
 
-	// Gerar gráfico se aplicável
-	chart, err := a.generateChart(analysis)
-	if err == nil && chart != "" {
-		analysis.Result += "\n\n## Visualização\n\n" + chart
+		// Gerar gráfico se aplicável (se IA disponível)
+		chart, err := a.generateChart(analysis)
+		if err == nil && chart != "" {
+			analysis.Result += "\n\n## Visualização\n\n" + chart
+		}
+	} else {
+		// Sem IA, adicionar nota
+		analysis.Result += "\n\n⚠️ *Nota: Funcionalidades de IA não disponíveis. Configure GROQ_API_KEY para insights e gráficos.*\n"
 	}
 
 	analysis.Status = "completed"
@@ -162,6 +169,10 @@ func (a *Analyzer) PerformAnalysis(analysis *DBAnalysis, config *ConnectionConfi
 
 // generateChart gera gráfico para a análise
 func (a *Analyzer) generateChart(analysis *DBAnalysis) (string, error) {
+	if a.aiClient == nil {
+		return "", fmt.Errorf("cliente IA não disponível")
+	}
+	
 	chartGenerator, err := dbcharts.NewChartGenerator()
 	if err != nil {
 		return "", err

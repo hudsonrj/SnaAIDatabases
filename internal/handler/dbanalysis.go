@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/snip/internal/dbanalysis"
+	"github.com/snip/internal/exporter"
 	"github.com/snip/internal/repository"
 )
 
@@ -17,7 +18,8 @@ type DBAnalysisHandler interface {
 	GetAnalysis(idStr string, verbose bool) error
 	GetAnalysisByID(id int) (*dbanalysis.DBAnalysis, error)
 	DeleteAnalysis(idStr string) error
-	RunAnalysis(idStr string) error
+	RunAnalysis(idStr string, exportFilename string) error
+	ExportAnalysisToMarkdown(idStr string, filename string) (string, error)
 }
 
 type dbAnalysisHandler struct {
@@ -140,14 +142,40 @@ func (h *dbAnalysisHandler) GetAnalysis(idStr string, verbose bool) error {
 		fmt.Printf("  └── Atualizado: %s\n", analysis.UpdatedAt.Format("2006-01-02 15:04:05"))
 	}
 
-	if analysis.Result != "" {
-		fmt.Println("\n## Resultado da Análise\n")
-		fmt.Println(analysis.Result)
+	// Extrair gráfico do resultado se houver
+	chart := ""
+	result := analysis.Result
+	if strings.Contains(result, "## Visualização") {
+		parts := strings.Split(result, "## Visualização")
+		if len(parts) > 1 {
+			chart = strings.TrimSpace(parts[1])
+			// Remover gráfico do resultado principal
+			result = strings.TrimSpace(strings.Split(result, "## Visualização")[0])
+		}
+	}
+
+	if result != "" {
+		fmt.Println("\n" + strings.Repeat("═", 70))
+		fmt.Println("📊 RESULTADO DA ANÁLISE")
+		fmt.Println(strings.Repeat("═", 70) + "\n")
+		fmt.Println(result)
+		fmt.Println()
+	}
+
+	if chart != "" {
+		fmt.Println(strings.Repeat("─", 70))
+		fmt.Println("📈 VISUALIZAÇÃO")
+		fmt.Println(strings.Repeat("─", 70) + "\n")
+		fmt.Println(chart)
+		fmt.Println()
 	}
 
 	if analysis.AIInsights != "" {
-		fmt.Println("\n## Insights da IA\n")
+		fmt.Println(strings.Repeat("─", 70))
+		fmt.Println("🤖 INSIGHTS DA IA")
+		fmt.Println(strings.Repeat("─", 70) + "\n")
 		fmt.Println(analysis.AIInsights)
+		fmt.Println()
 	}
 
 	if analysis.ErrorMessage != "" {
@@ -171,7 +199,7 @@ func (h *dbAnalysisHandler) DeleteAnalysis(idStr string) error {
 	return nil
 }
 
-func (h *dbAnalysisHandler) RunAnalysis(idStr string) error {
+func (h *dbAnalysisHandler) RunAnalysis(idStr string, exportFilename string) error {
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return fmt.Errorf("ID de análise inválido: %s", idStr)
@@ -207,14 +235,51 @@ func (h *dbAnalysisHandler) RunAnalysis(idStr string) error {
 	fmt.Printf("✓ Análise concluída com sucesso!\n")
 	fmt.Printf("  Status: %s\n", analysis.Status)
 
-	if analysis.Result != "" {
-		fmt.Println("\n## Resultado:\n")
-		fmt.Println(analysis.Result)
+	// Extrair gráfico do resultado se houver
+	chart := ""
+	result := analysis.Result
+	if strings.Contains(result, "## Visualização") {
+		parts := strings.Split(result, "## Visualização")
+		if len(parts) > 1 {
+			chart = parts[1]
+			// Remover gráfico do resultado principal
+			result = strings.Split(result, "## Visualização")[0]
+		}
+	}
+
+	// Formatar e exibir resultado melhorado
+	if result != "" {
+		fmt.Println("\n" + strings.Repeat("═", 70))
+		fmt.Println("📊 RESULTADO DA ANÁLISE")
+		fmt.Println(strings.Repeat("═", 70) + "\n")
+		fmt.Println(result)
+		fmt.Println()
+	}
+
+	if chart != "" {
+		fmt.Println(strings.Repeat("─", 70))
+		fmt.Println("📈 VISUALIZAÇÃO")
+		fmt.Println(strings.Repeat("─", 70) + "\n")
+		fmt.Println(chart)
+		fmt.Println()
 	}
 
 	if analysis.AIInsights != "" {
-		fmt.Println("\n## Insights da IA:\n")
+		fmt.Println(strings.Repeat("─", 70))
+		fmt.Println("🤖 INSIGHTS DA IA")
+		fmt.Println(strings.Repeat("─", 70) + "\n")
 		fmt.Println(analysis.AIInsights)
+		fmt.Println()
+	}
+
+	// Exportar para markdown se solicitado
+	if exportFilename != "" {
+		filePath, err := h.ExportAnalysisToMarkdown(idStr, exportFilename)
+		if err != nil {
+			fmt.Printf("⚠️  Aviso: Erro ao exportar: %v\n", err)
+		} else {
+			fmt.Printf("✅ Relatório exportado para: %s\n", filePath)
+		}
 	}
 
 	return nil
@@ -227,6 +292,44 @@ func (h *dbAnalysisHandler) GetAnalysisByID(id int) (*dbanalysis.DBAnalysis, err
 		return nil, fmt.Errorf("erro ao buscar análise: %w", err)
 	}
 	return analysis, nil
+}
+
+// ExportAnalysisToMarkdown exporta uma análise para markdown
+func (h *dbAnalysisHandler) ExportAnalysisToMarkdown(idStr string, filename string) (string, error) {
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return "", fmt.Errorf("ID de análise inválido: %s", idStr)
+	}
+
+	analysis, err := h.analysisRepo.GetByID(id)
+	if err != nil {
+		return "", fmt.Errorf("erro ao buscar análise: %w", err)
+	}
+
+	// Extrair gráfico do resultado se houver
+	chart := ""
+	result := analysis.Result
+	if strings.Contains(result, "## Visualização") {
+		parts := strings.Split(result, "## Visualização")
+		if len(parts) > 1 {
+			chart = strings.TrimSpace(parts[1])
+			// Remover gráfico do resultado principal
+			result = strings.TrimSpace(strings.Split(result, "## Visualização")[0])
+		}
+	}
+
+	filePath, err := exporter.ExportToMarkdown(
+		analysis.Title,
+		string(analysis.DatabaseType),
+		string(analysis.AnalysisType),
+		result,
+		analysis.AIInsights,
+		chart,
+		analysis.CreatedAt,
+		filename,
+	)
+
+	return filePath, err
 }
 
 // FormatOutput formata a saída conforme o tipo especificado

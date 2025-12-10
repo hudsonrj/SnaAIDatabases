@@ -36,12 +36,12 @@ type MaintenanceTask struct {
 
 // MaintenancePlanner gera planos de manutenção usando IA
 type MaintenancePlanner struct {
-	aiClient *ai.GroqClient
+	aiClient ai.AIClient
 }
 
 // NewMaintenancePlanner cria um novo planejador de manutenção
 func NewMaintenancePlanner() (*MaintenancePlanner, error) {
-	aiClient, err := ai.NewGroqClient()
+	aiClient, err := ai.NewAIClient()
 	if err != nil {
 		return nil, fmt.Errorf("erro ao criar cliente IA: %w", err)
 	}

@@ -11,7 +11,7 @@ import (
 
 // DynamicAnalyzer realiza análises dinâmicas gerando queries com IA
 type DynamicAnalyzer struct {
-	aiClient *ai.GroqClient
+	aiClient ai.AIClient
 	db       *sql.DB
 	dbType   dbtypes.DatabaseType
 	config   *dbtypes.ConnectionConfig
@@ -19,7 +19,7 @@ type DynamicAnalyzer struct {
 
 // NewDynamicAnalyzer cria um novo analisador dinâmico
 func NewDynamicAnalyzer(dbType dbtypes.DatabaseType, config *dbtypes.ConnectionConfig, db *sql.DB) (*DynamicAnalyzer, error) {
-	aiClient, err := ai.NewGroqClient()
+	aiClient, err := ai.NewAIClient()
 	if err != nil {
 		return nil, fmt.Errorf("erro ao criar cliente IA: %w", err)
 	}

@@ -30,6 +30,7 @@ var (
 	dbAnalysisChartType    string
 	dbAnalysisGeneratePlan bool
 	dbAnalysisGenerateProject bool
+	dbAnalysisExport       string
 )
 
 func init() {
@@ -59,9 +60,11 @@ func init() {
 
 	// Comando get
 	dbAnalysisGetCmd.Flags().BoolP("verbose", "v", false, "Mostrar informações detalhadas")
+	dbAnalysisGetCmd.Flags().StringP("export", "e", "", "Exportar resultado para markdown (nome do arquivo)")
 
 	// Comando run
 	dbAnalysisRunCmd.Flags().StringVarP(&dbAnalysisTitle, "title", "t", "", "Título da análise (opcional)")
+	dbAnalysisRunCmd.Flags().StringVarP(&dbAnalysisExport, "export", "e", "", "Exportar resultado para markdown (nome do arquivo)")
 
 	// Adicionar comandos ao root
 	rootCmd.AddCommand(dbAnalysisCmd)
@@ -169,10 +172,27 @@ Exemplos:
   snip db-analysis get 1
   snip db-analysis get 1 --verbose`,
 	Args: cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+		Run: func(cmd *cobra.Command, args []string) {
 		if err := executeWithDBAnalysisHandler(func(h handler.DBAnalysisHandler) error {
 			verbose, _ := cmd.Flags().GetBool("verbose")
-			return h.GetAnalysis(args[0], verbose)
+			export, _ := cmd.Flags().GetString("export")
+			
+			err := h.GetAnalysis(args[0], verbose)
+			if err != nil {
+				return err
+			}
+
+			// Exportar se solicitado
+			if export != "" {
+				filePath, err := h.ExportAnalysisToMarkdown(args[0], export)
+				if err != nil {
+					fmt.Printf("⚠️  Aviso: Erro ao exportar: %v\n", err)
+				} else {
+					fmt.Printf("\n✅ Relatório exportado para: %s\n", filePath)
+				}
+			}
+
+			return nil
 		}); err != nil {
 			fmt.Printf("Erro: %v\n", err)
 		}
@@ -206,9 +226,9 @@ A análise será executada e os resultados serão armazenados para consulta post
 Exemplo:
   snip db-analysis run 1`,
 	Args: cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+		Run: func(cmd *cobra.Command, args []string) {
 		if err := executeWithDBAnalysisHandler(func(h handler.DBAnalysisHandler) error {
-			return h.RunAnalysis(args[0])
+			return h.RunAnalysis(args[0], dbAnalysisExport)
 		}); err != nil {
 			fmt.Printf("Erro: %v\n", err)
 		}

@@ -11,12 +11,12 @@ import (
 
 // AINaturalLanguageInterpreter interpreta requisições em linguagem natural
 type AINaturalLanguageInterpreter struct {
-	aiClient *ai.GroqClient
+	aiClient ai.AIClient
 }
 
 // NewAINaturalLanguageInterpreter cria um novo interpretador
 func NewAINaturalLanguageInterpreter() (*AINaturalLanguageInterpreter, error) {
-	aiClient, err := ai.NewGroqClient()
+	aiClient, err := ai.NewAIClient()
 	if err != nil {
 		return nil, fmt.Errorf("erro ao criar cliente IA: %w", err)
 	}

@@ -93,7 +93,8 @@ Para sair do chat, digite 'exit', 'quit' ou 'sair'.`,
 		defer chat.Close()
 
 		fmt.Println("🤖 Chat com Banco de Dados iniciado!")
-		fmt.Println("Digite suas perguntas ou solicitações. Digite 'exit', 'quit' ou 'sair' para sair.\n")
+		fmt.Println("Digite suas perguntas ou solicitações. A IA executará queries automaticamente e responderá com os resultados.")
+		fmt.Println("Digite 'exit', 'quit' ou 'sair' para sair.\n")
 
 		scanner := bufio.NewScanner(os.Stdin)
 		for {
@@ -115,10 +116,10 @@ Para sair do chat, digite 'exit', 'quit' ou 'sair'.`,
 			}
 
 			// Enviar mensagem e receber resposta
-			fmt.Println("\n🤖 Assistente: ")
+			fmt.Print("\n🤖 Assistente: ")
 			response, err := chat.SendMessage(userInput)
 			if err != nil {
-				fmt.Printf("Erro: %v\n\n", err)
+				fmt.Printf("❌ Erro: %v\n\n", err)
 				continue
 			}
 

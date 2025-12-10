@@ -48,18 +48,18 @@ type handler struct {
 	validator     *validation.Validator
 	editorHandler *EditorHandler
 	dateFormat    string
-	groqClient    *ai.GroqClient
+	aiClient    ai.AIClient
 }
 
 func NewHandler(noteRepo repository.NoteRepository, tagRepo repository.TagRepository) Handler {
-	groqClient, _ := ai.NewGroqClient()
+	aiClient, _ := ai.NewAIClient()
 	return &handler{
 		noteRepo:      noteRepo,
 		tagRepo:       tagRepo,
 		validator:     validation.NewValidator(),
 		dateFormat:    "2006-01-02 15:04:05",
 		editorHandler: NewEditorHandler(),
-		groqClient:    groqClient,
+		aiClient:      aiClient,
 	}
 }
 
@@ -567,12 +567,12 @@ func renderMarkdownContent(content string) string {
 }
 
 func (h *handler) CreateNoteWithAI(topic string, context string, tag *string) error {
-	if h.groqClient == nil {
+	if h.aiClient == nil {
 		return fmt.Errorf("AI client not available")
 	}
 
 	fmt.Println("Generating content with AI...")
-	content, err := h.groqClient.GenerateNoteContent(topic, context)
+	content, err := h.aiClient.GenerateNoteContent(topic, context)
 	if err != nil {
 		return fmt.Errorf("failed to generate content with AI: %w", err)
 	}
@@ -594,7 +594,7 @@ func (h *handler) CreateNoteWithAI(topic string, context string, tag *string) er
 }
 
 func (h *handler) ImproveSearchWithAI(query string) error {
-	if h.groqClient == nil {
+	if h.aiClient == nil {
 		return fmt.Errorf("AI client not available")
 	}
 
@@ -610,7 +610,7 @@ func (h *handler) ImproveSearchWithAI(query string) error {
 	}
 
 	fmt.Println("Improving search query with AI...")
-	improvedQuery, err := h.groqClient.ImproveSearchQuery(query, notesContext)
+	improvedQuery, err := h.aiClient.ImproveSearchQuery(query, notesContext)
 	if err != nil {
 		return fmt.Errorf("failed to improve search query: %w", err)
 	}
@@ -643,7 +643,7 @@ func (h *handler) ImproveSearchWithAI(query string) error {
 }
 
 func (h *handler) AskAI(question string) error {
-	if h.groqClient == nil {
+	if h.aiClient == nil {
 		return fmt.Errorf("AI client not available")
 	}
 
@@ -659,7 +659,7 @@ func (h *handler) AskAI(question string) error {
 	}
 
 	fmt.Println("Asking AI...")
-	answer, err := h.groqClient.AnswerQuestion(question, notesContext)
+	answer, err := h.aiClient.AnswerQuestion(question, notesContext)
 	if err != nil {
 		return fmt.Errorf("failed to get answer from AI: %w", err)
 	}
@@ -669,12 +669,12 @@ func (h *handler) AskAI(question string) error {
 }
 
 func (h *handler) GenerateCodeWithAI(language string, description string, context string) error {
-	if h.groqClient == nil {
+	if h.aiClient == nil {
 		return fmt.Errorf("AI client not available")
 	}
 
 	fmt.Printf("Generating %s code with AI...\n", language)
-	code, err := h.groqClient.GenerateCode(language, description, context)
+	code, err := h.aiClient.GenerateCode(language, description, context)
 	if err != nil {
 		return fmt.Errorf("failed to generate code with AI: %w", err)
 	}

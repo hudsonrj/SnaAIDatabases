@@ -41,12 +41,12 @@ type Series struct {
 
 // ChartGenerator gera gráficos de análises
 type ChartGenerator struct {
-	aiClient *ai.GroqClient
+	aiClient ai.AIClient
 }
 
 // NewChartGenerator cria um novo gerador de gráficos
 func NewChartGenerator() (*ChartGenerator, error) {
-	aiClient, err := ai.NewGroqClient()
+	aiClient, err := ai.NewAIClient()
 	if err != nil {
 		return nil, fmt.Errorf("erro ao criar cliente IA: %w", err)
 	}
@@ -136,16 +136,15 @@ Se não houver dados numéricos suficientes, retorne um JSON com arrays vazios.`
 	return data, nil
 }
 
-// generateASCIIChart gera gráfico ASCII
+// generateASCIIChart gera gráfico ASCII melhorado
 func (c *ChartGenerator) generateASCIIChart(data ChartData) (string, error) {
 	var result strings.Builder
 
-	result.WriteString(fmt.Sprintf("\n%s\n", data.Title))
-	result.WriteString(strings.Repeat("=", len(data.Title)))
-	result.WriteString("\n\n")
+	// Título formatado
+	result.WriteString(fmt.Sprintf("\n### 📊 %s\n\n", data.Title))
 
 	if len(data.Series) == 0 || len(data.Labels) == 0 {
-		return "Dados insuficientes para gerar gráfico", nil
+		return "```\n⚠️ Dados insuficientes para gerar gráfico\n```", nil
 	}
 
 	// Encontrar valor máximo para escala
@@ -159,17 +158,21 @@ func (c *ChartGenerator) generateASCIIChart(data ChartData) (string, error) {
 	}
 
 	if maxValue == 0 {
-		return "Todos os valores são zero", nil
+		return "```\n⚠️ Todos os valores são zero\n```", nil
 	}
 
 	// Altura do gráfico
-	height := 20
+	height := 15
 	width := len(data.Labels)
+	if width > 50 {
+		width = 50 // Limitar largura
+	}
 
 	// Para gráfico de barras
 	if data.ChartType == ChartTypeBar || data.ChartType == "" {
-		result.WriteString(fmt.Sprintf("%s\n", data.YAxis))
-		result.WriteString("│\n")
+		result.WriteString("```\n")
+		result.WriteString(fmt.Sprintf("  %s\n", data.YAxis))
+		result.WriteString("  │\n")
 
 		for i := height; i >= 0; i-- {
 			value := maxValue * float64(i) / float64(height)
@@ -206,20 +209,25 @@ func (c *ChartGenerator) generateASCIIChart(data ChartData) (string, error) {
 			}
 		}
 		result.WriteString("\n")
-		result.WriteString(fmt.Sprintf("      %s\n\n", data.XAxis))
+		result.WriteString(fmt.Sprintf("      %s\n", data.XAxis))
 
-		// Legenda
+		// Legenda melhorada
+		result.WriteString("\n  Legenda:\n")
+		legendChars := []string{"█", "▓", "▒", "░", "▄", "▀"}
 		for i, series := range data.Series {
 			if i < len(data.Series) {
-				result.WriteString(fmt.Sprintf("  %s: █\n", series.Name))
+				char := legendChars[i%len(legendChars)]
+				result.WriteString(fmt.Sprintf("    %s %s\n", char, series.Name))
 			}
 		}
+		result.WriteString("```\n\n")
 	}
 
 	// Para gráfico de linha
 	if data.ChartType == ChartTypeLine {
-		result.WriteString(fmt.Sprintf("%s\n", data.YAxis))
-		result.WriteString("│\n")
+		result.WriteString("```\n")
+		result.WriteString(fmt.Sprintf("  %s\n", data.YAxis))
+		result.WriteString("  │\n")
 
 		for i := height; i >= 0; i-- {
 			value := maxValue * float64(i) / float64(height)
@@ -258,7 +266,18 @@ func (c *ChartGenerator) generateASCIIChart(data ChartData) (string, error) {
 			}
 		}
 		result.WriteString("\n")
-		result.WriteString(fmt.Sprintf("      %s\n\n", data.XAxis))
+		result.WriteString(fmt.Sprintf("      %s\n", data.XAxis))
+
+		// Legenda
+		result.WriteString("\n  Legenda:\n")
+		legendChars := []string{"●", "◆", "▲", "■", "★", "♦"}
+		for i, series := range data.Series {
+			if i < len(data.Series) {
+				char := legendChars[i%len(legendChars)]
+				result.WriteString(fmt.Sprintf("    %s %s\n", char, series.Name))
+			}
+		}
+		result.WriteString("```\n\n")
 	}
 
 	return result.String(), nil
@@ -343,16 +362,14 @@ func (c *ChartGenerator) generateHTMLChart(data ChartData) (string, error) {
 	return result.String(), nil
 }
 
-// generateTable gera tabela formatada
+// generateTable gera tabela formatada melhorada
 func (c *ChartGenerator) generateTable(data ChartData) (string, error) {
 	var result strings.Builder
 
-	result.WriteString(fmt.Sprintf("\n%s\n", data.Title))
-	result.WriteString(strings.Repeat("=", len(data.Title)))
-	result.WriteString("\n\n")
+	result.WriteString(fmt.Sprintf("\n### 📋 %s\n\n", data.Title))
 
 	if len(data.Labels) == 0 {
-		return "Sem dados para exibir", nil
+		return "```\n⚠️ Sem dados para exibir\n```", nil
 	}
 
 	// Cabeçalho
@@ -367,7 +384,7 @@ func (c *ChartGenerator) generateTable(data ChartData) (string, error) {
 	// Separador
 	result.WriteString("|")
 	for i := 0; i <= len(data.Series); i++ {
-		result.WriteString("---|")
+		result.WriteString(" --- |")
 	}
 	result.WriteString("\n")
 
@@ -378,13 +395,20 @@ func (c *ChartGenerator) generateTable(data ChartData) (string, error) {
 		for _, series := range data.Series {
 			result.WriteString(" | ")
 			if i < len(series.Values) {
-				result.WriteString(fmt.Sprintf("%.2f", series.Values[i]))
+				// Formatação melhorada de números
+				val := series.Values[i]
+				if val == float64(int64(val)) {
+					result.WriteString(fmt.Sprintf("%.0f", val))
+				} else {
+					result.WriteString(fmt.Sprintf("%.2f", val))
+				}
 			} else {
 				result.WriteString("N/A")
 			}
 		}
 		result.WriteString(" |\n")
 	}
+	result.WriteString("\n")
 
 	return result.String(), nil
 }

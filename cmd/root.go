@@ -39,4 +39,5 @@ func init() {
 	rootCmd.AddCommand(backupCmd)
 	rootCmd.AddCommand(exportCmd)
 	rootCmd.AddCommand(importCmd)
+	// ai config é adicionado em aiconfig.go
 }

@@ -12,12 +12,12 @@ import (
 
 // BackupAnalyzer analisa backups de diferentes bancos
 type BackupAnalyzer struct {
-	aiClient *ai.GroqClient
+	aiClient ai.AIClient
 }
 
 // NewBackupAnalyzer cria um novo analisador de backups
 func NewBackupAnalyzer() (*BackupAnalyzer, error) {
-	aiClient, err := ai.NewGroqClient()
+	aiClient, err := ai.NewAIClient()
 	if err != nil {
 		return nil, fmt.Errorf("erro ao criar cliente IA: %w", err)
 	}

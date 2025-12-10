@@ -6,6 +6,7 @@ import (
 	"os/user"
 	"strings"
 
+	_ "github.com/lib/pq" // Driver PostgreSQL
 	"github.com/snip/internal/dbtypes"
 )
 
@@ -101,14 +102,15 @@ func (m *MySQLConnector) TestConnection(config *dbtypes.ConnectionConfig) error 
 type PostgreSQLConnector struct{}
 
 func (p *PostgreSQLConnector) Connect(config *dbtypes.ConnectionConfig) (*sql.DB, error) {
-	_, err := p.GetConnectionString(config)
+	connStr, err := p.GetConnectionString(config)
 	if err != nil {
 		return nil, err
 	}
-	// Nota: requer driver PostgreSQL como "github.com/lib/pq"
-	// db, err := sql.Open("postgres", connStr)
-	// return db, err
-	return nil, fmt.Errorf("driver PostgreSQL não instalado. Execute: go get github.com/lib/pq")
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao abrir conexão PostgreSQL: %w", err)
+	}
+	return db, nil
 }
 
 func (p *PostgreSQLConnector) GetConnectionString(config *dbtypes.ConnectionConfig) (string, error) {

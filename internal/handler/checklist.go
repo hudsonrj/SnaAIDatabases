@@ -24,15 +24,15 @@ type ChecklistHandler interface {
 type checklistHandler struct {
 	checklistRepo     repository.ChecklistRepository
 	checklistItemRepo repository.ChecklistItemRepository
-	groqClient        *ai.GroqClient
+	aiClient        ai.AIClient
 }
 
 func NewChecklistHandler(checklistRepo repository.ChecklistRepository, checklistItemRepo repository.ChecklistItemRepository) ChecklistHandler {
-	groqClient, _ := ai.NewGroqClient()
+	aiClient, _ := ai.NewAIClient()
 	return &checklistHandler{
 		checklistRepo:     checklistRepo,
 		checklistItemRepo:  checklistItemRepo,
-		groqClient:         groqClient,
+		aiClient:           aiClient,
 	}
 }
 
@@ -51,7 +51,7 @@ func (h *checklistHandler) CreateChecklist(title, description string, taskID, pr
 }
 
 func (h *checklistHandler) CreateChecklistWithAI(topic, context string, numItems int, taskID, projectID *int) error {
-	if h.groqClient == nil {
+	if h.aiClient == nil {
 		return fmt.Errorf("AI client not available")
 	}
 
@@ -60,7 +60,7 @@ func (h *checklistHandler) CreateChecklistWithAI(topic, context string, numItems
 	}
 
 	fmt.Printf("Gerando checklist com IA (%d itens)...\n", numItems)
-	items, err := h.groqClient.GenerateChecklist(topic, context, numItems)
+	items, err := h.aiClient.GenerateChecklist(topic, context, numItems)
 	if err != nil {
 		return fmt.Errorf("failed to generate checklist: %w", err)
 	}
